@@ -1,6 +1,6 @@
 # JS_ARRAYSandOBJECTS
 
-this repository includes my JS homeworks, where I learned:
+this repository includes my JS homeworks, where I've learned:
 
 - objects and arrays;
 - working with built-in JS functions;
