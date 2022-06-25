@@ -1,3 +1,6 @@
+/*Дан следующий массив:
+*/
+
 const enterprises = [
     {
         id: 1,
@@ -54,6 +57,91 @@ const enterprises = [
     }
 ]
 
+/*Задания:
+1. Вывести все предприятия и их отделы. Рядом указать количество сотрудников. Для предприятия посчитать сумму всех сотрудников во всех отделах.
+
+2. Написать функцию, которая будет принимать 1 аргумент (id отдела или название отдела и возвращать название предприятия, к которому относится).
+
+3. Написать функцию, которая будет добавлять предприятие. 
+В качестве аргумента принимает название предприятия
+
+4. Написать функцию, которая будет добавлять отдел в предприятие. 
+В качестве аргумента принимает id предприятия, 
+в которое будет добавлен отдел и название отдела.
+
+5. Написать функцию для редактирования названия предприятия. 
+Принимает в качестве аргумента id предприятия и новое имя предприятия.
+
+6. Написать функцию для редактирования названия отдела. 
+Принимает в качестве аргумента id отдела и новое имя отдела.
+
+7. Написать функцию для удаления предприятия. В качестве аргумента 
+принимает id предприятия.
+
+8. Написать функцию для удаления отдела. В качестве аргумента принимает id отдела. Удалить отдел можно только, если в нем нет сотрудников.
+
+9. Написать функцию для переноса сотрудников между отделами одного предприятия. В качестве аргумента принимает два значения: id отдела, из которого будут переноситься сотрудники и id отдела, в который будут переноситься сотрудники).
+
+
+
+Сперва создаю вспомогательные функции:
+*/
+
+
+
+//поиск индекса предприятия через id предприятия:
+
+const getEnterprise = function (value) {
+    let indexEnt = enterprises.findIndex(ent => {
+        return ent.id == value;
+    })
+    return indexEnt;
+}
+
+
+
+//поиск индекса предприятия через id его отдела:
+
+const getEnterpriseFromDepId = function (value) {
+    let index = enterprises.findIndex(ent => {
+        return ent.departments.find(el => el.id == value);
+    })
+    return index;
+};
+
+
+
+//поиск индекса отдела предприятия через id самого отдела:
+
+const getDepartmentFromDepId = function (value) {
+    let indexEnt = getEnterpriseFromDepId(value)
+    let indexDep = enterprises[indexEnt].departments.findIndex(ent => {
+        if (ent.id == value) return ent;
+
+    })
+    return indexDep;
+}
+
+
+
+//вычисление макимального id в массиве:
+
+let allId = [];
+
+const getMaxId = function (enterprises) {
+
+    for (let item in enterprises) {
+        if (typeof enterprises[item] == 'object') {
+            getMaxId(enterprises[item])
+        } else if (item == 'id') {
+            allId.push(enterprises[item])
+        }
+    }
+    return Math.max.apply(null, allId);
+}
+
+
+
 /* 1. Вывести все предприятия и их отделы. Рядом указать количество сотрудников.
  Для предприятия посчитать сумму всех сотрудников во всех отделах.
 
@@ -72,16 +160,22 @@ const enterprises = [
 
 
 
+//вспомогательная функция, которая позволит склонять окончания слова "сотрудник" 
+const declination = (number, txt, cases = [2, 0, 1, 1, 1, 2]) => txt[(number % 100 > 4 && number % 100 < 20) ? 2 : cases[(number % 10 < 5) ? number % 10 : 5]];
+
+
+
 function namings(ent) {
     let list = []
+
     ent.forEach(el => {
         let counter = 0;
         let dep = el.departments.map(item => {
             counter += item.employees_count
-            return item.name + ' (' + item.employees_count + ' сотрудников)';
+            return ` ${item.name} (${item.employees_count}  ${declination(item.employees_count, ['сотрудник', 'сотрудника', 'сотрудников'])})`;
         }).join('\n- ');
 
-        list.push(el.name + ' (' + counter + ' сотрудников)' + '\n' + '- ' + dep);
+        list.push(`${el.name} (${counter} ${declination(counter, ['сотрудник', 'сотрудника', 'сотрудников'])}) ${'\n' + '- ' + dep}`);
     });
     return list.join('\n');
 
@@ -106,7 +200,7 @@ function getEnterpriseName(criteria) {
     })
 }
 
-getEnterpriseName("Отдел маркетинга");
+getEnterpriseName("Отдел аналитики");
 getEnterpriseName(1);
 getEnterpriseName(7);
 
@@ -123,7 +217,7 @@ function addEnterprise(newEnterprise) {
     let newEnt = Object.assign({}, enterprises.slice(-1)[0]);
 
     newEnt.name = newEnterprise;
-    newEnt.id = newEnt.departments.slice(-1)[0].id + 1;
+    newEnt.id = getMaxId(enterprises) + 1;
     let newId = newEnt.id;
     newEnt.departments.forEach(dep => {
         newId++;
@@ -134,30 +228,26 @@ function addEnterprise(newEnterprise) {
     enterprises.push(newEnt);
     return enterprises;
 }
-
 console.log(addEnterprise("Предприятие 4"));
 
 
 
 /* 4. Написать функцию, которая будет добавлять отдел в предприятие. В качестве аргумента принимает id предприятия, в которое будет добавлен отдел и название отдела.
 
- Пример:
- addDepartment(1, "Название нового отдела")*/
+Пример:
+addDepartment(1, "Название нового отдела")*/
 
 
 
-function addDepartment(depId, depNewName) {
-    let index = enterprises.findIndex(ent => {
-        return ent.id == depId;
-    })
+function addDepartment(entId, depNewName) {
+    let indexEnt = getEnterprise(entId)
     let newDep = {
-        id: 11,
+        id: getMaxId(enterprises) + 1,
         name: depNewName,
         employees_count: 0
     }
-
-    enterprises[index].departments.push(newDep);
-    console.log(enterprises[index]);
+    enterprises[indexEnt].departments.push(newDep);
+    console.log(enterprises[indexEnt]);
 }
 addDepartment(9, 'Отдел сантехники');
 
@@ -171,14 +261,11 @@ addDepartment(9, 'Отдел сантехники');
 
 
 function editEnterprise(entId, entNewName) {
-    let index = enterprises.findIndex(ent => {
-        return ent.id == entId;
-    })
-    enterprises[index].name = entNewName;
+    let indexEnt = getEnterprise(entId)
+    enterprises[indexEnt].name = entNewName;
     console.log(enterprises);
 }
 editEnterprise(9, "Предприятие ХXX");
-
 
 
 
@@ -190,17 +277,14 @@ editEnterprise(9, "Предприятие ХXX");
 
 
 function editDepartment(depId, newDepName) {
-    let indexEnt = enterprises.findIndex(ent => {
-        return ent.departments.find(el => el.id == depId);
-    })
-    let indexDep = enterprises[indexEnt].departments.findIndex(ent => {
-        if (ent.id == depId) return ent;
-    })
-    enterprises[indexEnt].departments[indexDep].name = newDepName;
-    console.log(enterprises[indexEnt].departments[indexDep]);
+    const indexEnt = getEnterpriseFromDepId(depId);
+    const indexDep = getDepartmentFromDepId(depId);
+    let department = enterprises[indexEnt].departments[indexDep];
 
+    department.name = newDepName;
+    console.log(department);
 }
-editDepartment(10, 'Отдел ночного дожора');
+editDepartment(7, 'Отдел ночного дожора');
 
 
 
@@ -212,10 +296,7 @@ editDepartment(10, 'Отдел ночного дожора');
 
 
 function deleteEnterprise(entId) {
-    let indexEnt = enterprises.findIndex(ent => {
-        return ent.id == entId;
-    })
-
+    let indexEnt = getEnterprise(entId)
     enterprises.splice(indexEnt, 1)
     console.log(enterprises)
 }
@@ -223,7 +304,7 @@ deleteEnterprise(5);
 
 
 
-/* 8. Написать функцию для удаления отдела. В качестве аргумента принимает id отдела. 
+/* 8. Написать функцию для удаления отдела. В качестве аргумента принимает id отдела.
 Удалить отдел можно только, если в нем нет сотрудников.
 
  Пример:
@@ -233,20 +314,18 @@ deleteEnterprise(5);
 
 function deleteDepartment(depId) {
 
-    let indexEnt = enterprises.findIndex(ent => {
-        return ent.departments.find(el => el.id == depId);
-    })
-    let departments = enterprises[indexEnt].departments;
-    let indexDep = departments.findIndex(ent => {
-        if (ent.id == depId) return ent;
-    })
+    let indexEnt = getEnterpriseFromDepId(depId)
+    let indexDep = getDepartmentFromDepId(depId)
+    let department = enterprises[indexEnt].departments;
 
-    if (departments[indexDep].employees_count == 0) {
-        departments.splice(indexDep, 1)
+    if (department[indexDep].employees_count == 0) {
+        department.splice(indexDep, 1)
         console.log(enterprises[indexEnt])
+    } else {
+        console.log('You can\'t delete this department while it has employees!')
     }
 }
-deleteDepartment(10);
+deleteDepartment(7);
 
 
 
@@ -260,12 +339,17 @@ moveEmployees(2, 3)*/
 
 
 function moveEmployees(depIdFrom, depIdTo) {
-    let indexEnt = enterprises.findIndex(ent => {
-        return ent.departments.find(el => el.id == depIdFrom);
-    })
-    let departments = enterprises[indexEnt].departments;
-    departments.find(el => el.id == depIdTo).employees_count += departments.find(el => el.id == depIdFrom).employees_count
-    departments.find(el => el.id == depIdFrom).employees_count = 0;
-    console.log(departments)
+    let indexEntDepFrom = getEnterpriseFromDepId(depIdFrom);
+    let indexEntDepTo = getEnterpriseFromDepId(depIdTo);
+    let departments = enterprises[indexEntDepFrom].departments;
+
+    if (indexEntDepFrom == indexEntDepTo) {
+
+        departments.find(el => el.id == depIdTo).employees_count += departments.find(el => el.id == depIdFrom).employees_count
+        departments.find(el => el.id == depIdFrom).employees_count = 0;
+        console.log(departments)
+    } else {
+        console.log('Please be sure that chosen departments are in same enterprise')
+    }
 }
-moveEmployees(7, 8);
+moveEmployees(3, 4);
