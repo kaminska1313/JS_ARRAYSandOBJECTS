@@ -1,6 +1,5 @@
 /*Дан следующий массив:
 */
-
 const enterprises = [
     {
         id: 1,
@@ -92,10 +91,10 @@ const enterprises = [
 //поиск индекса предприятия через id предприятия:
 
 const getEnterprise = function (value) {
-    let indexEnt = enterprises.findIndex(ent => {
+    let index = enterprises.findIndex(ent => {
         return ent.id == value;
     })
-    return indexEnt;
+    return index;
 }
 
 
@@ -114,14 +113,13 @@ const getEnterpriseFromDepId = function (value) {
 //поиск индекса отдела предприятия через id самого отдела:
 
 const getDepartmentFromDepId = function (value) {
-    let indexEnt = getEnterpriseFromDepId(value)
-    let indexDep = enterprises[indexEnt].departments.findIndex(ent => {
+    let index_ent = getEnterpriseFromDepId(value)
+    let index_dep = enterprises[index_ent].departments.findIndex(ent => {
         if (ent.id == value) return ent;
 
     })
-    return indexDep;
+    return index_dep;
 }
-
 
 
 //вычисление макимального id в массиве:
@@ -214,17 +212,12 @@ getEnterpriseName(7);
 
 
 function addEnterprise(newEnterprise) {
-    let newEnt = Object.assign({}, enterprises.slice(-1)[0]);
+    let newEnt = {
+        id: getMaxId(enterprises) + 1,
+        name: newEnterprise,
+        departments: []
+    }
 
-    newEnt.name = newEnterprise;
-    newEnt.id = getMaxId(enterprises) + 1;
-    let newId = newEnt.id;
-    newEnt.departments.forEach(dep => {
-        newId++;
-        dep.id = newId;
-        dep.name = "";
-        return newEnt;
-    })
     enterprises.push(newEnt);
     return enterprises;
 }
@@ -300,7 +293,7 @@ function deleteEnterprise(entId) {
     enterprises.splice(indexEnt, 1)
     console.log(enterprises)
 }
-deleteEnterprise(5);
+deleteEnterprise(11);
 
 
 
@@ -325,7 +318,7 @@ function deleteDepartment(depId) {
         console.log('You can\'t delete this department while it has employees!')
     }
 }
-deleteDepartment(7);
+deleteDepartment(12);
 
 
 
@@ -344,7 +337,6 @@ function moveEmployees(depIdFrom, depIdTo) {
     let departments = enterprises[indexEntDepFrom].departments;
 
     if (indexEntDepFrom == indexEntDepTo) {
-
         departments.find(el => el.id == depIdTo).employees_count += departments.find(el => el.id == depIdFrom).employees_count
         departments.find(el => el.id == depIdFrom).employees_count = 0;
         console.log(departments)
